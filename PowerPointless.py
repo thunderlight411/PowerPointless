@@ -58,10 +58,28 @@ def pptx_to_mp4(pptx_input,mp4_output, ppt):
     print(Fore.GREEN + "Converted in:", round(end_time_stamp-start_time_stamp, 3), "seconds" + Style.RESET_ALL)
     # ppt.Quit()
     # pass
+
+def close_powerpoint():
+    try:
+        subprocess.run(["taskkill", "/F", "/IM", "POWERPNT.EXE"], check=True)
+        print("Successfully closed PowerPoint.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while trying to close PowerPoint: {e}")
+
+def remove_file_if_exists(file_path):
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f"Successfully removed {file_path}")
+        else:
+            print(f"File {file_path} does not exist.")
+    except Exception as e:
+        print(f"Error occurred while trying to remove {file_path}: {e}")
   
 if __name__ == '__main__':
     colorama_init()
-    print("\nPowerPointless V1.1 (PowerPoint to video converter) by Philip Goosen [19509766@sun.ac.za]")
+    print("\nPowerPointless V1.2 (PowerPoint to video converter) by Philip Goosen [19509766@sun.ac.za]")
+    print("\nAdded some minor features to close powerpoint when already open and remove file if already exist by Thunderlight411")
     print("https://github.com/goosenphil/PowerPointless\n")
 
     print(Fore.YELLOW + "Please don't open PowerPoint while this program is running" + Style.RESET_ALL)
@@ -69,6 +87,7 @@ if __name__ == '__main__':
     if is_powerpoint_running():
         print(Fore.RED + "Please close PowerPoint so I can run :/" + Style.RESET_ALL)
         print("If I do nothing for a while after you closed it, check in task manager, PowerPoint might still be running in the background.")
+        close_powerpoint()
         while is_powerpoint_running():
             time.sleep(0.1)
 
@@ -84,13 +103,13 @@ if __name__ == '__main__':
     files = os.listdir(os.curdir)
     ppt_counter = 0
     for file in files:
-        if ".pptx" in file:
+        if file.endswith(".pptx"):
             ppt_counter += 1
-            if os.path.isfile(cwd+file[:-5]+'.mp4')==False or os.path.getsize(cwd+file[:-5]+'.mp4')==0: # Check if conversion already happened
-                pptx_to_mp4(cwd+file,cwd+file[:-5]+'.mp4', ppt)
-            else:
-                print("[-] Skipping", file)
-    
+            mp4_file = cwd + file[:-5] + '.mp4'
+            print("File already exist removing old file")
+            remove_file_if_exists(mp4_file)  # Ensure the file is removed if it exists
+            pptx_to_mp4(cwd + file, mp4_file, ppt)
+
     ppt.Quit()
     # print("Done!")
     if ppt_counter == 0:
@@ -99,4 +118,4 @@ if __name__ == '__main__':
     else:
         print("Waiting for PowerPoint to quit...")
         print(Fore.GREEN + "\nDone, study well! :)"+ Style.RESET_ALL + " - Press ENTER to exit..." )
-        input()
+        #input()
